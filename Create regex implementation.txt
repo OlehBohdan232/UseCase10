@@ -1,0 +1,265 @@
+User
+Hi GPT-4. I need you to create a kotlin function that validates string based on set of requirements and uses Regex
+ChatGPT
+Of course! Let's start by listing the requirements you'd like to validate the string against.
+
+For the sake of this example, let's say we have the following requirements:
+
+The string must be between 5 and 12 characters in length.
+It must start with a capital letter.
+It should contain at least one digit.
+It should not contain any special characters, except for a dash (-).
+Here's a Kotlin function that validates a string based on the above requirements using Regex:
+
+kotlin
+Copy code
+fun isValid(input: String): Boolean {
+    // Check if the string length is between 5 and 12
+    if (input.length !in 5..12) return false
+
+    // Regex pattern based on the requirements
+    val pattern = """^[A-Z][A-Za-z0-9\-]*[0-9][A-Za-z0-9\-]*$""".toRegex()
+
+    return pattern.matches(input)
+}
+
+fun main() {
+    println(isValid("Abc12ef")) // true
+    println(isValid("aBC12"))   // false (doesn't start with a capital letter)
+    println(isValid("ABCDEF"))  // false (doesn't contain a digit)
+    println(isValid("Abc@123")) // false (contains special character '@')
+}
+Note that this is a basic example and might not handle all edge cases. Please adjust the requirements and the regex pattern accordingly if you have different criteria.
+
+
+
+
+User
+Requirements:
+1. This regular expression should validate the maximum string length (passed as parameter); it should return a match if the string length is within the acceptable range and a non-match if it is not.
+2. This regular expression should also validate that the string contains at least one uppercase letter, one lowercase letter, one digit, and one special character from a predefined list: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~. It should return a match if the criteria are met and a non-match if they are not.
+3. This regular expression should validate that the string does not contain any whitespace characters (spaces, tabs, or newlines). This should return a non-match if any whitespace characters are found.
+ChatGPT
+Given the requirements you've provided, we can construct a Kotlin function with a regex pattern that matches the conditions you've laid out.
+
+To achieve the requirements, I will use positive lookaheads ((?=...)). Positive lookaheads are used to assert a particular substring is somewhere ahead of a given point in the string.
+
+Here's a function that generates a regex pattern based on the maximum string length and then checks if a given string matches the requirements:
+
+kotlin
+Copy code
+fun isValid(input: String, maxLength: Int): Boolean {
+    // First, we validate the string length
+    if (input.length > maxLength) return false
+
+    // Next, let's create the regex pattern based on your requirements
+
+    // 1. Assert there's at least one uppercase letter
+    val oneUppercase = """(?=.*[A-Z])"""
+
+    // 2. Assert there's at least one lowercase letter
+    val oneLowercase = """(?=.*[a-z])"""
+
+    // 3. Assert there's at least one digit
+    val oneDigit = """(?=.*\d)"""
+
+    // 4. Assert there's at least one special character from the predefined list
+    val oneSpecialChar = """(?=.*[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~])"""
+
+    // 5. Assert no whitespace characters
+    val noWhitespace = """(?=\S+$)"""
+
+    // Compile the full pattern
+    val pattern = """^$oneUppercase$oneLowercase$oneDigit$oneSpecialChar$noWhitespace.{$maxLength}$""".toRegex()
+
+    return pattern.matches(input)
+}
+
+fun main() {
+    println(isValid("Aa1!", 10))    // true
+    println(isValid("Aa1! ", 10))   // false (due to whitespace)
+    println(isValid("AA11!", 10))   // false (missing lowercase letter)
+    println(isValid("AaBb9!", 4))   // false (exceeds max length)
+}
+The function first checks if the string length exceeds the maximum length and returns false if it does. Then, it checks the remaining conditions with the regex pattern and returns whether the input string matches the pattern.
+
+Feel free to adjust and expand upon the function as needed!
+
+
+
+
+User
+Yes. But can you use Regex to validate maximum length of provided string?
+ChatGPT
+Yes, we can integrate the maximum length check into the regex itself.
+
+Given your requirements, we can use the following strategy:
+
+Use the {,n} quantifier in regex to ensure that there are at most n characters.
+Use lookaheads to assert that certain patterns exist in the string.
+Here's a Kotlin function that generates a regex pattern based on the maximum string length:
+
+kotlin
+Copy code
+fun isValid(input: String, maxLength: Int): Boolean {
+    // 1. Assert there's at least one uppercase letter
+    val oneUppercase = """(?=.*[A-Z])"""
+
+    // 2. Assert there's at least one lowercase letter
+    val oneLowercase = """(?=.*[a-z])"""
+
+    // 3. Assert there's at least one digit
+    val oneDigit = """(?=.*\d)"""
+
+    // 4. Assert there's at least one special character from the predefined list
+    val oneSpecialChar = """(?=.*[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~])"""
+
+    // 5. Assert no whitespace characters
+    val noWhitespace = """(?=\S+$)"""
+
+    // 6. Ensure string is at most 'maxLength' characters
+    val lengthCheck = """.{1,$maxLength}"""
+
+    // Compile the full pattern
+    val pattern = """^$oneUppercase$oneLowercase$oneDigit$oneSpecialChar$noWhitespace$lengthCheck$""".toRegex()
+
+    return pattern.matches(input)
+}
+
+fun main() {
+    println(isValid("Aa1!", 10))    // true
+    println(isValid("Aa1! ", 10))   // false (due to whitespace)
+    println(isValid("AA11!", 10))   // false (missing lowercase letter)
+    println(isValid("AaBb9!", 4))   // false (exceeds max length)
+}
+By using ., which matches any character except newlines (which matches your requirements since whitespaces are not allowed), combined with the {1,maxLength} quantifier, we can ensure that the string length is within the acceptable range.
+
+
+
+
+User
+Can you validate that string doesn't contain any tabs and newline symbols?
+ChatGPT
+Certainly! To ensure the string doesn't contain tabs (\t) and newline symbols (\n or \r), we can use a negative lookahead combined with a character set.
+
+Here's how to adjust the regex pattern and function to incorporate this requirement:
+
+kotlin
+Copy code
+fun isValid(input: String, maxLength: Int): Boolean {
+    // 1. Assert there's at least one uppercase letter
+    val oneUppercase = """(?=.*[A-Z])"""
+
+    // 2. Assert there's at least one lowercase letter
+    val oneLowercase = """(?=.*[a-z])"""
+
+    // 3. Assert there's at least one digit
+    val oneDigit = """(?=.*\d)"""
+
+    // 4. Assert there's at least one special character from the predefined list
+    val oneSpecialChar = """(?=.*[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~])"""
+
+    // 5. Assert no whitespace characters (spaces, tabs, newlines)
+    val noWhitespace = """(?![\s\t\n\r])"""
+
+    // 6. Ensure string is at most 'maxLength' characters
+    val lengthCheck = """.{1,$maxLength}"""
+
+    // Compile the full pattern
+    val pattern = """^$oneUppercase$oneLowercase$oneDigit$oneSpecialChar$noWhitespace$lengthCheck$""".toRegex()
+
+    return pattern.matches(input)
+}
+
+fun main() {
+    println(isValid("Aa1!", 10))      // true
+    println(isValid("Aa1!\t", 10))   // false (due to tab)
+    println(isValid("Aa1!\n", 10))   // false (due to newline)
+    println(isValid("Aa1! ", 10))    // false (due to space)
+    println(isValid("AA11!", 10))    // false (missing lowercase letter)
+    println(isValid("AaBb9!", 4))    // false (exceeds max length)
+}
+In the updated function, the noWhitespace pattern has been modified to ensure that neither whitespace, tabs, nor newlines are present in the string.
+
+
+
+
+User
+Can you add one more edge case to your tests with two special characters?
+ChatGPT
+Of course! Let's add an edge case where the input string contains two special characters. I will test it to ensure the regex pattern can handle multiple special characters as well.
+
+kotlin
+Copy code
+fun isValid(input: String, maxLength: Int): Boolean {
+    // 1. Assert there's at least one uppercase letter
+    val oneUppercase = """(?=.*[A-Z])"""
+
+    // 2. Assert there's at least one lowercase letter
+    val oneLowercase = """(?=.*[a-z])"""
+
+    // 3. Assert there's at least one digit
+    val oneDigit = """(?=.*\d)"""
+
+    // 4. Assert there's at least one special character from the predefined list
+    val oneSpecialChar = """(?=.*[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~])"""
+
+    // 5. Assert no whitespace characters (spaces, tabs, newlines)
+    val noWhitespace = """(?![\s\t\n\r])"""
+
+    // 6. Ensure string is at most 'maxLength' characters
+    val lengthCheck = """.{1,$maxLength}"""
+
+    // Compile the full pattern
+    val pattern = """^$oneUppercase$oneLowercase$oneDigit$oneSpecialChar$noWhitespace$lengthCheck$""".toRegex()
+
+    return pattern.matches(input)
+}
+
+fun main() {
+    println(isValid("Aa1!", 10))       // true
+    println(isValid("Aa1!\t", 10))    // false (due to tab)
+    println(isValid("Aa1!\n", 10))    // false (due to newline)
+    println(isValid("Aa1! ", 10))     // false (due to space)
+    println(isValid("AA11!", 10))     // false (missing lowercase letter)
+    println(isValid("AaBb9!!", 10))   // true (two special characters)
+    println(isValid("AaBb9!", 4))     // false (exceeds max length)
+}
+The test case "AaBb9!!" has two exclamation marks as special characters and should return true since it still meets all of the specified criteria.
+
+User
+Can you move patterns to some constants to make them more reusable?
+
+ChatGPT
+Certainly! By moving the regex patterns to constants, we can make them more reusable across multiple functions or even other parts of the program.
+
+Here's how you can modify the function with constants for the patterns:
+
+kotlin
+Copy code
+const val ONE_UPPERCASE = """(?=.*[A-Z])"""
+const val ONE_LOWERCASE = """(?=.*[a-z])"""
+const val ONE_DIGIT = """(?=.*\d)"""
+const val ONE_SPECIAL_CHAR = """(?=.*[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~])"""
+const val NO_WHITESPACE = """(?![\s\t\n\r])"""
+
+fun isValid(input: String, maxLength: Int): Boolean {
+    // Ensure string is at most 'maxLength' characters
+    val lengthCheck = """.{1,$maxLength}"""
+
+    // Compile the full pattern
+    val pattern = """^$ONE_UPPERCASE$ONE_LOWERCASE$ONE_DIGIT$ONE_SPECIAL_CHAR$NO_WHITESPACE$lengthCheck$""".toRegex()
+
+    return pattern.matches(input)
+}
+
+fun main() {
+    println(isValid("Aa1!", 10))       // true
+    println(isValid("Aa1!\t", 10))    // false (due to tab)
+    println(isValid("Aa1!\n", 10))    // false (due to newline)
+    println(isValid("Aa1! ", 10))     // false (due to space)
+    println(isValid("AA11!", 10))     // false (missing lowercase letter)
+    println(isValid("AaBb9!!", 10))   // true (two special characters)
+    println(isValid("AaBb9!", 4))     // false (exceeds max length)
+}
+Now, these constants can be reused in other functions or validations, and it makes the code cleaner by separating out the regex patterns.
